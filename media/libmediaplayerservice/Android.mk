@@ -44,6 +44,7 @@ LOCAL_C_INCLUDES :=                                               \
 	$(TOP)/frameworks/av/media/libstagefright/rtsp                  \
 	$(TOP)/frameworks/native/include/media/openmax                  \
 	$(TOP)/external/tremolo/Tremolo                                 \
+	$(TOP)/external/chromium                                        \
 
 ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
     LOCAL_STATIC_LIBRARIES += libmedia_helper

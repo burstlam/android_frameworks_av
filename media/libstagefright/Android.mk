@@ -100,7 +100,8 @@ LOCAL_C_INCLUDES:= \
         $(TOP)/external/openssl/include \
         $(TOP)/hardware/qcom/display/libgralloc \
         $(TOP)/hardware/qcom/media/mm-core/inc \
-        $(TOP)/system/core/include
+        $(TOP)/system/core/include \
+        $(TOP)/external/chromium \
 
 LOCAL_SHARED_LIBRARIES := \
         libbinder \
