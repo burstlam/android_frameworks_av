@@ -1014,6 +1014,7 @@ void CameraService::Client::disableMsgType(int32_t msgType) {
 #define CHECK_MESSAGE_INTERVAL 10 // 10ms
 bool CameraService::Client::lockIfMessageWanted(int32_t msgType) {
     int sleepCount = 0;
+#if 0
     while (mMsgEnabled & msgType) {
         if (mLock.tryLock() == NO_ERROR) {
             if (sleepCount > 0) {
@@ -1029,6 +1030,9 @@ bool CameraService::Client::lockIfMessageWanted(int32_t msgType) {
     }
     ALOGW("lockIfMessageWanted(%d): dropped unwanted message", msgType);
     return false;
+#else
+	return true;
+#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -1368,7 +1372,7 @@ int CameraService::Client::getOrientation(int degrees, bool mirror) {
         } else if (degrees == 180) {  // FLIP_H and ROT_180
             return HAL_TRANSFORM_FLIP_V;
         } else if (degrees == 270) {  // FLIP_H and ROT_270
-            return HAL_TRANSFORM_FLIP_V | HAL_TRANSFORM_ROT_90;
+            return HAL_TRANSFORM_FLIP_H | HAL_TRANSFORM_ROT_90;
         }
     }
     ALOGE("Invalid setDisplayOrientation degrees=%d", degrees);
