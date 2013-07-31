@@ -153,7 +153,7 @@ const char CameraParameters::KEY_HIGH_DYNAMIC_RANGE_IMAGING[] = "hdr";
 const char CameraParameters::KEY_SUPPORTED_HDR_IMAGING_MODES[] = "hdr-values";
 
 #ifdef USE_MIONE_CAMERA
-// the fxxking xiaomi stuff
+// the xiaomi stuff
 const char CameraParameters::KEY_GAMMA[] = "gamma";
 const char CameraParameters::KEY_CONVERSION[] = "conversion";
 const char CameraParameters::KEY_MATRIX[] = "matrix";
