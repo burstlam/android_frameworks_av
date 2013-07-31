@@ -534,11 +534,25 @@ status_t WifiDisplaySource::sendM1(int32_t sessionID) {
 }
 
 status_t WifiDisplaySource::sendM3(int32_t sessionID) {
-    AString body =
-        "wfd_content_protection\r\n"
-        "wfd_video_formats\r\n"
-        "wfd_audio_codecs\r\n"
-        "wfd_client_rtp_ports\r\n";
+    // HDCP Authentication Skip!
+    char val[PROPERTY_VALUE_MAX];
+    bool skip_hdcp = property_get("persist.sys.wfd.nohdcp", val, NULL) && strcmp("1", val) == 0;
+    AString body;
+    if (skip_hdcp) {
+        ALOGI("sendM3() SKIP!! HDCP Authentication");
+        body = 
+            //"wfd_content_protection\r\n"
+            "wfd_video_formats\r\n"
+            "wfd_audio_codecs\r\n"
+            "wfd_client_rtp_ports\r\n";
+    } else {
+        ALOGI("sendM3() send standard request.");
+        body = 
+            "wfd_content_protection\r\n"
+            "wfd_video_formats\r\n"
+            "wfd_audio_codecs\r\n"
+            "wfd_client_rtp_ports\r\n";
+    }
 
     AString request = "GET_PARAMETER rtsp://localhost/wfd1.0 RTSP/1.0\r\n";
     AppendCommonResponse(&request, mNextCSeq);
@@ -784,7 +798,10 @@ status_t WifiDisplaySource::onReceiveM3Response(
         ALOGE("Sink chose its wfd_client_rtp_ports poorly (%s)",
               value.c_str());
 
-        return ERROR_MALFORMED;
+        ALOGE("onReceiveM3Response() SKIP!! port check.");
+        port0 = 19000;
+        port1 = 0;
+        //return ERROR_MALFORMED;
     }
 
     mChosenRTPPort = port0;
@@ -797,6 +814,12 @@ status_t WifiDisplaySource::onReceiveM3Response(
     if  (value == "none") {
         ALOGE("Sink doesn't support audio at all.");
         return ERROR_UNSUPPORTED;
+    }
+
+    if (value == "xxx") {
+        ALOGE("onReceiveM3Response() Force Apply wfd_audio_codecs to AAC");
+        value.clear();
+        value.append("LPCM 00000003 00, AAC 0000000F 00");
     }
 
     uint32_t modes;
@@ -952,6 +975,9 @@ status_t WifiDisplaySource::onReceiveClientData(const sp<AMessage> &msg) {
     AString method;
     AString uri;
     data->getRequestField(0, &method);
+
+    ALOGI("<== <== <== onReceiveClientData() session[%d] method[%s]", sessionID, method.c_str());
+    ALOGI("[%s]", data->debugString().c_str());
 
     int32_t cseq;
     if (!data->findInt32("cseq", &cseq)) {
