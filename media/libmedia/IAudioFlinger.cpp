@@ -2,9 +2,7 @@
 **
 ** Copyright 2007, The Android Open Source Project
 ** Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
-**
-** Not a Contribution, Apache license notifications and license are retained
-** for attribution purposes only.
+** Not a Contribution.
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -36,7 +34,7 @@ enum {
     CREATE_TRACK = IBinder::FIRST_CALL_TRANSACTION,
     OPEN_RECORD,
     SAMPLE_RATE,
-    CHANNEL_COUNT,  // obsolete
+    RESERVED,   // obsolete, was CHANNEL_COUNT
     FORMAT,
     FRAME_COUNT,
     LATENCY,
@@ -74,14 +72,11 @@ enum {
     GET_EFFECT_DESCRIPTOR,
     CREATE_EFFECT,
     MOVE_EFFECTS,
-#ifdef QCOM_FM_ENABLED
-    SET_FM_VOLUME,
-#endif
     LOAD_HW_MODULE,
     GET_PRIMARY_OUTPUT_SAMPLING_RATE,
     GET_PRIMARY_OUTPUT_FRAME_COUNT,
 #ifdef QCOM_HARDWARE
-    CREATE_DIRECT_TRACK
+    CREATE_DIRECT_TRACK,
 #endif
 };
 
@@ -94,13 +89,12 @@ public:
     }
 
     virtual sp<IAudioTrack> createTrack(
-                                pid_t pid,
                                 audio_stream_type_t streamType,
                                 uint32_t sampleRate,
                                 audio_format_t format,
                                 audio_channel_mask_t channelMask,
-                                int frameCount,
-                                track_flags_t flags,
+                                size_t frameCount,
+                                track_flags_t *flags,
                                 const sp<IMemory>& sharedBuffer,
                                 audio_io_handle_t output,
                                 pid_t tid,
@@ -110,13 +104,13 @@ public:
         Parcel data, reply;
         sp<IAudioTrack> track;
         data.writeInterfaceToken(IAudioFlinger::getInterfaceDescriptor());
-        data.writeInt32(pid);
         data.writeInt32((int32_t) streamType);
         data.writeInt32(sampleRate);
         data.writeInt32(format);
         data.writeInt32(channelMask);
         data.writeInt32(frameCount);
-        data.writeInt32((int32_t) flags);
+        track_flags_t lFlags = flags != NULL ? *flags : (track_flags_t) TRACK_DEFAULT;
+        data.writeInt32(lFlags);
         data.writeStrongBinder(sharedBuffer->asBinder());
         data.writeInt32((int32_t) output);
         data.writeInt32((int32_t) tid);
@@ -129,6 +123,10 @@ public:
         if (lStatus != NO_ERROR) {
             ALOGE("createTrack error: %s", strerror(-lStatus));
         } else {
+            lFlags = reply.readInt32();
+            if (flags != NULL) {
+                *flags = lFlags;
+            }
             lSessionId = reply.readInt32();
             if (sessionId != NULL) {
                 *sessionId = lSessionId;
@@ -186,12 +184,11 @@ public:
 #endif
 
     virtual sp<IAudioRecord> openRecord(
-                                pid_t pid,
                                 audio_io_handle_t input,
                                 uint32_t sampleRate,
                                 audio_format_t format,
                                 audio_channel_mask_t channelMask,
-                                int frameCount,
+                                size_t frameCount,
                                 track_flags_t flags,
                                 pid_t tid,
                                 int *sessionId,
@@ -200,7 +197,6 @@ public:
         Parcel data, reply;
         sp<IAudioRecord> record;
         data.writeInterfaceToken(IAudioFlinger::getInterfaceDescriptor());
-        data.writeInt32(pid);
         data.writeInt32((int32_t) input);
         data.writeInt32(sampleRate);
         data.writeInt32(format);
@@ -238,17 +234,6 @@ public:
         remote()->transact(SAMPLE_RATE, data, &reply);
         return reply.readInt32();
     }
-
-#if 0
-    virtual int channelCount(audio_io_handle_t output) const
-    {
-        Parcel data, reply;
-        data.writeInterfaceToken(IAudioFlinger::getInterfaceDescriptor());
-        data.writeInt32((int32_t) output);
-        remote()->transact(CHANNEL_COUNT, data, &reply);
-        return reply.readInt32();
-    }
-#endif
 
     virtual audio_format_t format(audio_io_handle_t output) const
     {
@@ -554,7 +539,7 @@ public:
         return reply.readInt32();
     }
 
-    virtual status_t getRenderPosition(uint32_t *halFrames, uint32_t *dspFrames,
+    virtual status_t getRenderPosition(size_t *halFrames, size_t *dspFrames,
             audio_io_handle_t output) const
     {
         Parcel data, reply;
@@ -575,7 +560,7 @@ public:
         return status;
     }
 
-    virtual unsigned int getInputFramesLost(audio_io_handle_t ioHandle) const
+    virtual size_t getInputFramesLost(audio_io_handle_t ioHandle) const
     {
         Parcel data, reply;
         data.writeInterfaceToken(IAudioFlinger::getInterfaceDescriptor());
@@ -671,7 +656,7 @@ public:
         return NO_ERROR;
     }
 
-    virtual sp<IEffect> createEffect(pid_t pid,
+    virtual sp<IEffect> createEffect(
                                     effect_descriptor_t *pDesc,
                                     const sp<IEffectClient>& client,
                                     int32_t priority,
@@ -692,7 +677,6 @@ public:
         }
 
         data.writeInterfaceToken(IAudioFlinger::getInterfaceDescriptor());
-        data.writeInt32(pid);
         data.write(pDesc, sizeof(effect_descriptor_t));
         data.writeStrongBinder(client->asBinder());
         data.writeInt32(priority);
@@ -734,17 +718,6 @@ public:
         return reply.readInt32();
     }
 
-#ifdef QCOM_FM_ENABLED
-    virtual status_t setFmVolume(float volume)
-    {
-        Parcel data, reply;
-        data.writeInterfaceToken(IAudioFlinger::getInterfaceDescriptor());
-        data.writeFloat(volume);
-        remote()->transact(SET_FM_VOLUME, data, &reply);
-        return reply.readInt32();
-    }
-#endif
-
     virtual audio_module_handle_t loadHwModule(const char *name)
     {
         Parcel data, reply;
@@ -754,7 +727,7 @@ public:
         return (audio_module_handle_t) reply.readInt32();
     }
 
-    virtual int32_t getPrimaryOutputSamplingRate()
+    virtual uint32_t getPrimaryOutputSamplingRate()
     {
         Parcel data, reply;
         data.writeInterfaceToken(IAudioFlinger::getInterfaceDescriptor());
@@ -762,7 +735,7 @@ public:
         return reply.readInt32();
     }
 
-    virtual int32_t getPrimaryOutputFrameCount()
+    virtual size_t getPrimaryOutputFrameCount()
     {
         Parcel data, reply;
         data.writeInterfaceToken(IAudioFlinger::getInterfaceDescriptor());
@@ -782,21 +755,21 @@ status_t BnAudioFlinger::onTransact(
     switch (code) {
         case CREATE_TRACK: {
             CHECK_INTERFACE(IAudioFlinger, data, reply);
-            pid_t pid = data.readInt32();
             int streamType = data.readInt32();
             uint32_t sampleRate = data.readInt32();
             audio_format_t format = (audio_format_t) data.readInt32();
             audio_channel_mask_t channelMask = data.readInt32();
-            size_t bufferCount = data.readInt32();
+            size_t frameCount = data.readInt32();
             track_flags_t flags = (track_flags_t) data.readInt32();
             sp<IMemory> buffer = interface_cast<IMemory>(data.readStrongBinder());
             audio_io_handle_t output = (audio_io_handle_t) data.readInt32();
             pid_t tid = (pid_t) data.readInt32();
             int sessionId = data.readInt32();
             status_t status;
-            sp<IAudioTrack> track = createTrack(pid,
+            sp<IAudioTrack> track = createTrack(
                     (audio_stream_type_t) streamType, sampleRate, format,
-                    channelMask, bufferCount, flags, buffer, output, tid, &sessionId, &status);
+                    channelMask, frameCount, &flags, buffer, output, tid, &sessionId, &status);
+            reply->writeInt32(flags);
             reply->writeInt32(sessionId);
             reply->writeInt32(status);
             reply->writeStrongBinder(track->asBinder());
@@ -824,18 +797,17 @@ status_t BnAudioFlinger::onTransact(
 #endif
         case OPEN_RECORD: {
             CHECK_INTERFACE(IAudioFlinger, data, reply);
-            pid_t pid = data.readInt32();
             audio_io_handle_t input = (audio_io_handle_t) data.readInt32();
             uint32_t sampleRate = data.readInt32();
             audio_format_t format = (audio_format_t) data.readInt32();
             audio_channel_mask_t channelMask = data.readInt32();
-            size_t bufferCount = data.readInt32();
+            size_t frameCount = data.readInt32();
             track_flags_t flags = (track_flags_t) data.readInt32();
             pid_t tid = (pid_t) data.readInt32();
             int sessionId = data.readInt32();
             status_t status;
-            sp<IAudioRecord> record = openRecord(pid, input,
-                    sampleRate, format, channelMask, bufferCount, flags, tid, &sessionId, &status);
+            sp<IAudioRecord> record = openRecord(input,
+                    sampleRate, format, channelMask, frameCount, flags, tid, &sessionId, &status);
             reply->writeInt32(sessionId);
             reply->writeInt32(status);
             reply->writeStrongBinder(record->asBinder());
@@ -846,13 +818,6 @@ status_t BnAudioFlinger::onTransact(
             reply->writeInt32( sampleRate((audio_io_handle_t) data.readInt32()) );
             return NO_ERROR;
         } break;
-#if 0
-        case CHANNEL_COUNT: {
-            CHECK_INTERFACE(IAudioFlinger, data, reply);
-            reply->writeInt32( channelCount((audio_io_handle_t) data.readInt32()) );
-            return NO_ERROR;
-        } break;
-#endif
         case FORMAT: {
             CHECK_INTERFACE(IAudioFlinger, data, reply);
             reply->writeInt32( format((audio_io_handle_t) data.readInt32()) );
@@ -949,7 +914,8 @@ status_t BnAudioFlinger::onTransact(
 
         case REGISTER_CLIENT: {
             CHECK_INTERFACE(IAudioFlinger, data, reply);
-            sp<IAudioFlingerClient> client = interface_cast<IAudioFlingerClient>(data.readStrongBinder());
+            sp<IAudioFlingerClient> client = interface_cast<IAudioFlingerClient>(
+                    data.readStrongBinder());
             registerClient(client);
             return NO_ERROR;
         } break;
@@ -1049,8 +1015,8 @@ status_t BnAudioFlinger::onTransact(
         case GET_RENDER_POSITION: {
             CHECK_INTERFACE(IAudioFlinger, data, reply);
             audio_io_handle_t output = (audio_io_handle_t) data.readInt32();
-            uint32_t halFrames;
-            uint32_t dspFrames;
+            size_t halFrames;
+            size_t dspFrames;
             status_t status = getRenderPosition(&halFrames, &dspFrames, output);
             reply->writeInt32(status);
             if (status == NO_ERROR) {
@@ -1116,7 +1082,6 @@ status_t BnAudioFlinger::onTransact(
         }
         case CREATE_EFFECT: {
             CHECK_INTERFACE(IAudioFlinger, data, reply);
-            pid_t pid = data.readInt32();
             effect_descriptor_t desc;
             data.read(&desc, sizeof(effect_descriptor_t));
             sp<IEffectClient> client = interface_cast<IEffectClient>(data.readStrongBinder());
@@ -1127,7 +1092,8 @@ status_t BnAudioFlinger::onTransact(
             int id;
             int enabled;
 
-            sp<IEffect> effect = createEffect(pid, &desc, client, priority, output, sessionId, &status, &id, &enabled);
+            sp<IEffect> effect = createEffect(&desc, client, priority, output, sessionId,
+                    &status, &id, &enabled);
             reply->writeInt32(status);
             reply->writeInt32(id);
             reply->writeInt32(enabled);
@@ -1143,14 +1109,6 @@ status_t BnAudioFlinger::onTransact(
             reply->writeInt32(moveEffects(session, srcOutput, dstOutput));
             return NO_ERROR;
         } break;
-#ifdef QCOM_FM_ENABLED
-        case SET_FM_VOLUME: {
-            CHECK_INTERFACE(IAudioFlinger, data, reply);
-            float volume = data.readFloat();
-            reply->writeInt32( setFmVolume(volume) );
-            return NO_ERROR;
-        } break;
-#endif
         case LOAD_HW_MODULE: {
             CHECK_INTERFACE(IAudioFlinger, data, reply);
             reply->writeInt32(loadHwModule(data.readCString()));

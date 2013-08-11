@@ -19,25 +19,27 @@ LOCAL_SRC_FILES:=                         \
         ESDS.cpp                          \
         FileSource.cpp                    \
         FLACExtractor.cpp                 \
-        FragmentedMP4Extractor.cpp        \
         HTTPBase.cpp                      \
         JPEGSource.cpp                    \
         MP3Extractor.cpp                  \
         MPEG2TSWriter.cpp                 \
         MPEG4Extractor.cpp                \
         MPEG4Writer.cpp                   \
+        MediaAdapter.cpp                  \
         MediaBuffer.cpp                   \
         MediaBufferGroup.cpp              \
         MediaCodec.cpp                    \
         MediaCodecList.cpp                \
         MediaDefs.cpp                     \
         MediaExtractor.cpp                \
+        MediaMuxer.cpp                    \
         MediaSource.cpp                   \
         MetaData.cpp                      \
         NuCachedSource2.cpp               \
         NuMediaExtractor.cpp              \
         OMXClient.cpp                     \
         OMXCodec.cpp                      \
+        ExtendedCodec.cpp                 \
         OggExtractor.cpp                  \
         SampleIterator.cpp                \
         SampleTable.cpp                   \
@@ -51,24 +53,19 @@ LOCAL_SRC_FILES:=                         \
         Utils.cpp                         \
         VBRISeeker.cpp                    \
         WAVExtractor.cpp                  \
+        WAVEWriter.cpp                    \
         WVMExtractor.cpp                  \
         XINGSeeker.cpp                    \
         avc_utils.cpp                     \
         mp4/FragmentedMP4Parser.cpp       \
         mp4/TrackFragment.cpp             \
-
-ifeq ($(OMAP_ENHANCEMENT), true)
-LOCAL_SRC_FILES +=  AVIExtractor.cpp
-endif
-
-ifeq ($(BOARD_HAVE_QCOM_FM),true)
-LOCAL_SRC_FILES+=                         \
-        FMA2DPWriter.cpp
-endif
+        ExtendedExtractor.cpp             \
+        QCUtils.cpp                       \
 
 LOCAL_C_INCLUDES:= \
         $(TOP)/frameworks/av/include/media/stagefright/timedtext \
         $(TOP)/frameworks/native/include/media/hardware \
+        $(TOP)/frameworks/native/include/media/openmax \
         $(TOP)/external/flac/include \
         $(TOP)/external/tremolo \
         $(TOP)/external/openssl/include
@@ -87,13 +84,21 @@ LOCAL_SRC_FILES += \
 endif
 
 ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
-LOCAL_SRC_FILES += \
-        ExtendedWriter.cpp                \
-        QCMediaDefs.cpp                   \
-        QCOMXCodec.cpp                    \
-        WAVEWriter.cpp                    \
-        ExtendedExtractor.cpp             \
-        QCUtilityClass.cpp
+    ifeq ($(BOARD_USES_ALSA_AUDIO),true)
+        LOCAL_SRC_FILES += LPAPlayerALSA.cpp
+    endif
+    ifeq ($(USE_TUNNEL_MODE),true)
+        LOCAL_SRC_FILES += TunnelPlayer.cpp
+        LOCAL_CFLAGS += -DUSE_TUNNEL_MODE
+    endif
+    ifeq ($(TUNNEL_MODE_SUPPORTS_AMRWB),true)
+        LOCAL_CFLAGS += -DTUNNEL_MODE_SUPPORTS_AMRWB
+    endif
+    ifeq ($(NO_TUNNEL_MODE_FOR_MULTICHANNEL),true)
+        LOCAL_CFLAGS += -DNO_TUNNEL_MODE_FOR_MULTICHANNEL
+    endif
+    LOCAL_CFLAGS += -DQCOM_ENHANCED_AUDIO
+endif
 
 ifeq ($(TARGET_QCOM_MEDIA_VARIANT),caf)
 LOCAL_C_INCLUDES += \
@@ -102,28 +107,6 @@ else
 LOCAL_C_INCLUDES += \
         $(TOP)/hardware/qcom/media/mm-core/inc
 endif
-
-ifneq ($(call is-vendor-board-platform,QCOM),true)
-LOCAL_CFLAGS += -DNON_QCOM_TARGET
-endif
-
-ifeq ($(TARGET_QCOM_AUDIO_VARIANT),caf)
-    ifeq ($(call is-board-platform-in-list,msm8660 msm7x27a msm7x30),true)
-        LOCAL_SRC_FILES += LPAPlayer.cpp
-    else
-        LOCAL_SRC_FILES += LPAPlayerALSA.cpp
-    endif
-    ifeq ($(BOARD_USES_ALSA_AUDIO),true)
-        ifeq ($(call is-chipset-in-board-platform,msm8960),true)
-            LOCAL_CFLAGS += -DUSE_TUNNEL_MODE
-            LOCAL_CFLAGS += -DTUNNEL_MODE_SUPPORTS_AMRWB
-        endif
-    endif
-LOCAL_CFLAGS += -DQCOM_ENHANCED_AUDIO
-LOCAL_SRC_FILES += TunnelPlayer.cpp
-endif
-endif
-
 
 LOCAL_SHARED_LIBRARIES := \
         libbinder \
@@ -138,7 +121,6 @@ LOCAL_SHARED_LIBRARIES := \
         libicuuc \
         liblog \
         libmedia \
-        libmedia_native \
         libsonivox \
         libssl \
         libstagefright_omx \
@@ -156,6 +138,7 @@ LOCAL_STATIC_LIBRARIES := \
         libstagefright_matroska \
         libstagefright_timedtext \
         libvpx \
+        libwebm \
         libstagefright_mpeg2ts \
         libstagefright_httplive \
         libstagefright_id3 \
@@ -193,6 +176,23 @@ endif
 LOCAL_MODULE:= libstagefright
 
 LOCAL_MODULE_TAGS := optional
+
+
+ifeq ($(TARGET_ENABLE_QC_AV_ENHANCEMENTS),true)
+    LOCAL_CFLAGS += -DENABLE_QC_AV_ENHANCEMENTS
+    LOCAL_SRC_FILES  += ExtendedWriter.cpp
+    LOCAL_SRC_FILES  += QCMediaDefs.cpp
+    ifeq ($(TARGET_QCOM_MEDIA_VARIANT),caf)
+        LOCAL_C_INCLUDES += \
+            $(TOP)/hardware/qcom/media-caf/mm-core/inc
+    else
+        LOCAL_C_INCLUDES += \
+            $(TOP)/hardware/qcom/media/mm-core/inc
+    endif
+    ifeq ($(TARGET_ENABLE_DEFAULT_SMOOTHSTREAMING),true)
+            LOCAL_CFLAGS += -DENABLE_DEFAULT_SMOOTHSTREAMING
+    endif #TARGET_ENABLE_DEAFULT_SMOOTHSTREAMING
+endif #TARGET_ENABLE_QC_AV_ENHANCEMENTS
 
 include $(BUILD_SHARED_LIBRARY)
 

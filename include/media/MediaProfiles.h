@@ -1,7 +1,8 @@
 /*
+ ** Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ ** Not a Contribution.
  **
  ** Copyright 2010, The Android Open Source Project.
- ** Copyright (c) 2010 - 2012, The Linux Foundation. All rights reserved.
  **
  ** Licensed under the Apache License, Version 2.0 (the "License");
  ** you may not use this file except in compliance with the License.
@@ -38,7 +39,9 @@ enum camcorder_quality {
     CAMCORDER_QUALITY_WVGA = 9,
     CAMCORDER_QUALITY_VGA = 10,
     CAMCORDER_QUALITY_WQVGA = 11,
-    CAMCORDER_QUALITY_LIST_END = 11,
+    CAMCORDER_QUALITY_4kUHD = 12,
+    CAMCORDER_QUALITY_4kDCI = 13,
+    CAMCORDER_QUALITY_LIST_END = 13,
 
     CAMCORDER_QUALITY_TIME_LAPSE_LIST_START = 1000,
     CAMCORDER_QUALITY_TIME_LAPSE_LOW  = 1000,
@@ -76,9 +79,6 @@ enum videoeditor_capability {
 
 enum video_decoder {
     VIDEO_DECODER_WMV,
-#ifdef OMAP_ENHANCEMENT
-    VIDEO_DECODER_MPEG2,
-#endif
 };
 
 enum audio_decoder {
@@ -468,10 +468,8 @@ private:
     static VideoEncoderCap* createDefaultH263VideoEncoderCap();
     static VideoEncoderCap* createDefaultM4vVideoEncoderCap();
     static AudioEncoderCap* createDefaultAmrNBEncoderCap();
-#ifdef QCOM_HARDWARE
     static AudioEncoderCap* createDefaultAacEncoderCap();
     static AudioEncoderCap* createDefaultLpcmEncoderCap();
-#endif
 
     static int findTagForName(const NameToTagMap *map, size_t nMappings, const char *name);
 

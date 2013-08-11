@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 The Android Open Source Project
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009,2013, The Linux Foundation. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,11 +43,9 @@ static bool FileHasAcceptableExtension(const char *extension) {
         ".mpeg", ".ogg", ".mid", ".smf", ".imy", ".wma", ".aac",
         ".wav", ".amr", ".midi", ".xmf", ".rtttl", ".rtx", ".ota",
         ".mkv", ".mka", ".webm", ".ts", ".fl", ".flac", ".mxmf",
-        ".avi", ".mpg",
-#ifndef QCOM_HARDWARE
-       ".mpeg"
-#else
-        ".qcp", ".awb", ".ac3", ".dts", ".wmv"
+        ".avi", ".mpeg", ".mpg", ".awb", ".mpga"
+#ifdef ENABLE_QC_AV_ENHANCEMENTS
+        ,".qcp", ".ac3", ".dts", ".wmv"
 #endif
     };
     static const size_t kNumValidExtensions =

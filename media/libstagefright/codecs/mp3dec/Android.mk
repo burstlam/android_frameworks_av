@@ -2,7 +2,7 @@ LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := \
-	MP3Decoder.cpp \
+        MP3Decoder.cpp \
 	src/pvmp3_normalize.cpp \
  	src/pvmp3_alias_reduction.cpp \
  	src/pvmp3_crc.cpp \
@@ -129,7 +129,7 @@ LOCAL_C_INCLUDES := \
         $(LOCAL_PATH)/include
 
 LOCAL_SHARED_LIBRARIES := \
-        libstagefright libstagefright_omx libstagefright_foundation libutils
+        libstagefright libstagefright_omx libstagefright_foundation libutils liblog
 
 LOCAL_STATIC_LIBRARIES := \
         libstagefright_mp3dec_omx

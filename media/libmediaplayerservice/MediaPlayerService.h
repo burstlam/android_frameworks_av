@@ -3,7 +3,7 @@
 ** Copyright (c) 2013, The Linux Foundation. All rights reserved.
 ** Not a Contribution.
 **
-** Copyright (C) 2008 The Android Open Source Project
+** Copyright 2008, The Android Open Source Project
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -218,7 +218,6 @@ class MediaPlayerService : public BnMediaPlayerService
 #ifndef QCOM_HARDWARE
                 uint32_t        sampleRate() const { return mSampleRate; }
 #endif
-        virtual status_t        setPlaybackRatePermille(int32_t ratePermille) { return INVALID_OPERATION; }
                 audio_format_t  format() const { return mFormat; }
                 size_t          size() const { return mSize; }
                 status_t        wait();
@@ -254,21 +253,25 @@ public:
     static  void                instantiate();
 
     // IMediaPlayerService interface
-    virtual sp<IMediaRecorder>  createMediaRecorder(pid_t pid);
+    virtual sp<IMediaRecorder>  createMediaRecorder();
     void    removeMediaRecorderClient(wp<MediaRecorderClient> client);
-    virtual sp<IMediaMetadataRetriever> createMetadataRetriever(pid_t pid);
+    virtual sp<IMediaMetadataRetriever> createMetadataRetriever();
 
-    virtual sp<IMediaPlayer>    create(pid_t pid, const sp<IMediaPlayerClient>& client, int audioSessionId);
+    virtual sp<IMediaPlayer>    create(const sp<IMediaPlayerClient>& client, int audioSessionId);
 
     virtual sp<IMemory>         decode(const char* url, uint32_t *pSampleRate, int* pNumChannels, audio_format_t* pFormat);
     virtual sp<IMemory>         decode(int fd, int64_t offset, int64_t length, uint32_t *pSampleRate, int* pNumChannels, audio_format_t* pFormat);
     virtual sp<IOMX>            getOMX();
     virtual sp<ICrypto>         makeCrypto();
-    virtual sp<IHDCP>           makeHDCP();
+    virtual sp<IDrm>            makeDrm();
+    virtual sp<IHDCP>           makeHDCP(bool createEncryptionModule);
 
     virtual sp<IRemoteDisplay> listenForRemoteDisplay(const sp<IRemoteDisplayClient>& client,
             const String8& iface);
     virtual status_t            dump(int fd, const Vector<String16>& args);
+
+    virtual status_t        updateProxyConfig(
+            const char *host, int32_t port, const char *exclusionList);
 
             void                removeClient(wp<Client> client);
 
@@ -322,7 +325,7 @@ private:
         // IMediaPlayer interface
         virtual void            disconnect();
         virtual status_t        setVideoSurfaceTexture(
-                                        const sp<ISurfaceTexture>& surfaceTexture);
+                                        const sp<IGraphicBufferProducer>& bufferProducer);
         virtual status_t        prepareAsync();
         virtual status_t        start();
         virtual status_t        stop();

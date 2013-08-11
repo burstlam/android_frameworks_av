@@ -1,7 +1,6 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
- * Not a Contribution, Apache license notifications and license are retained
- * for attribution purposes only.
+ * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ * Not a Contribution.
  *
  * Copyright (C) 2009 The Android Open Source Project
  *
@@ -55,9 +54,9 @@ public:
             data.writeInt32(stream);
         } else if (event != AudioSystem::OUTPUT_CLOSED &&
 #ifdef QCOM_HARDWARE
-                        event != AudioSystem::EFFECT_CONFIG_CHANGED &&
+                   event != AudioSystem::EFFECT_CONFIG_CHANGED &&
 #endif
-                        event != AudioSystem::INPUT_CLOSED) {
+				   event != AudioSystem::INPUT_CLOSED) {
             const AudioSystem::OutputDescriptor *desc = (const AudioSystem::OutputDescriptor *)param2;
             data.writeInt32(desc->samplingRate);
             data.writeInt32(desc->format);
