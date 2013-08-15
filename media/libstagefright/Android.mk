@@ -97,8 +97,10 @@ ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
     ifeq ($(NO_TUNNEL_MODE_FOR_MULTICHANNEL),true)
         LOCAL_CFLAGS += -DNO_TUNNEL_MODE_FOR_MULTICHANNEL
     else
-        LOCAL_SRC_FILES += LPAPlayer.cpp
-        LOCAL_CFLAGS += -DLEGACY_LPA
+        ifneq ($(BOARD_USES_ALSA_AUDIO),true)
+            LOCAL_SRC_FILES += LPAPlayer.cpp
+            LOCAL_CFLAGS += -DLEGACY_LPA
+        endif
     endif
     LOCAL_CFLAGS += -DQCOM_ENHANCED_AUDIO
 endif
