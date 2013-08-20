@@ -141,7 +141,6 @@ status_t Visualizer::setCaptureSize(uint32_t size)
         uint32_t buf32[sizeof(effect_param_t) / sizeof(uint32_t) + 2];
         effect_param_t bufp;
     };
-    
     effect_param_t *p = &bufp;
 
     p->psize = sizeof(uint32_t);
@@ -176,8 +175,9 @@ status_t Visualizer::setScalingMode(uint32_t mode) {
 
     p->psize = sizeof(uint32_t);
     p->vsize = sizeof(uint32_t);
-    *(int32_t *)p->data = VISUALIZER_PARAM_SCALING_MODE;
-    *((int32_t *)p->data + 1)= mode;
+    int32_t const vpsm = VISUALIZER_PARAM_SCALING_MODE;
+    memcpy(&p->data, &vpsm, sizeof(vpsm));
+    memcpy(&p->data+sizeof(int32_t), &size, sizeof(size));
     status_t status = setParameter(p);
 
     ALOGV("setScalingMode mode %d  status %d p->status %d", mode, status, p->status);
