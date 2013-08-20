@@ -177,7 +177,7 @@ status_t Visualizer::setScalingMode(uint32_t mode) {
     p->vsize = sizeof(uint32_t);
     int32_t const vpsm = VISUALIZER_PARAM_SCALING_MODE;
     memcpy(&p->data, &vpsm, sizeof(vpsm));
-    memcpy(&p->data+sizeof(int32_t), &size, sizeof(size));
+    memcpy(&p->data+sizeof(int32_t), &mode, sizeof(mode));
     status_t status = setParameter(p);
 
     ALOGV("setScalingMode mode %d  status %d p->status %d", mode, status, p->status);
