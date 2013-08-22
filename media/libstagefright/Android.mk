@@ -83,7 +83,7 @@ LOCAL_SRC_FILES += \
         PCMExtractor.cpp
 endif
 
-ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
+ifeq ($(TARGET_QCOM_AUDIO_VARIANT),caf)
     ifeq ($(BOARD_USES_ALSA_AUDIO),true)
         LOCAL_SRC_FILES += LPAPlayerALSA.cpp
     endif
