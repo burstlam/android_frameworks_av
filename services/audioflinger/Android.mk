@@ -27,7 +27,9 @@ LOCAL_SRC_FILES:=               \
 
 LOCAL_SRC_FILES += StateQueue.cpp
 
+ifneq ($(DEBUG_FORCE_STRICT_ALIASING),yes)
 LOCAL_CFLAGS += -fno-strict-aliasing
+endif
 
 LOCAL_C_INCLUDES := \
     $(call include-path-for, audio-effects) \

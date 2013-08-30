@@ -71,7 +71,9 @@ LOCAL_C_INCLUDES:= \
         $(TOP)/external/tremolo \
         $(TOP)/external/openssl/include \
 
+ifneq ($(DEBUG_FORCE_STRICT_ALIASING),yes)
 LOCAL_CFLAGS += -fno-strict-aliasing
+endif
 
 ifneq ($(TI_CUSTOM_DOMX_PATH),)
 LOCAL_C_INCLUDES += $(TI_CUSTOM_DOMX_PATH)/omx_core/inc
