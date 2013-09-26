@@ -32,6 +32,9 @@
 #include <media/stagefright/foundation/AMessage.h>
 #include <ui/DisplayInfo.h>
 
+#include <gui/ISurfaceComposer.h>
+
+
 namespace android {
 
 struct TunnelRenderer::PlayerClient : public BnMediaPlayerClient {
@@ -337,10 +340,18 @@ void TunnelRenderer::initPlayer() {
         SurfaceComposerClient::getDisplayInfo(0, &info);
         ssize_t displayWidth = info.w;
         ssize_t displayHeight = info.h;
+        ALOGD("initPlayer() defailt size[%d, %d]", info.w, info.h);
+
+        sp<IBinder> display = SurfaceComposerClient::getBuiltInDisplay(ISurfaceComposer::eDisplayIdMain);
+        SurfaceComposerClient::getDisplayInfo(display, &info);
+        displayWidth = info.w;
+        displayHeight = info.h;
+        ALOGD("initPlayer() fixed size[%d, %d]", info.w, info.h);
 
         mSurfaceControl =
             mComposerClient->createSurface(
-                    String8("A Surface"),
+                    // String8("A Surface"),
+                    String8("A Sink Surface"),
                     displayWidth,
                     displayHeight,
                     PIXEL_FORMAT_RGB_565,
