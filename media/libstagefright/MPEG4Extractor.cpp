@@ -776,7 +776,7 @@ static void convertTimeToDate(int64_t time_1904, String8 *s) {
     s->setTo(tmp);
 }
 
-status_t MPEG4Extractor::parseChunk(off64_t *offset, int depth) {
+status_t __attribute__((optimize("no-strict-aliasing"))) MPEG4Extractor::parseChunk(off64_t *offset, int depth) {
     ALOGV("entering parseChunk %lld/%d", *offset, depth);
     uint32_t hdr[2];
     if (mDataSource->readAt(*offset, hdr, 8) < 8) {
