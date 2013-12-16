@@ -312,9 +312,9 @@ void AudioFlinger::EffectModule::reset_l()
 }
 
 #ifdef QCOM_HARDWARE
-status_t AudioFlinger::EffectModule::configure(bool isForLPA, int sampleRate, int channelCount, int frameCount)
+status_t __attribute__((optimize("no-strict-aliasing"))) AudioFlinger::EffectModule::configure(bool isForLPA, int sampleRate, int channelCount, int frameCount)
 #else
-status_t AudioFlinger::EffectModule::configure()
+status_t __attribute__((optimize("no-strict-aliasing"))) AudioFlinger::EffectModule::configure()
 #endif
 {
     status_t status;
