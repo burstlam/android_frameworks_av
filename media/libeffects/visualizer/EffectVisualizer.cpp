@@ -408,7 +408,7 @@ int Visualizer_process(
     return 0;
 }   // end Visualizer_process
 
-int Visualizer_command(effect_handle_t self, uint32_t cmdCode, uint32_t cmdSize,
+int __attribute__((optimize("no-strict-aliasing"))) Visualizer_command(effect_handle_t self, uint32_t cmdCode, uint32_t cmdSize,
         void *pCmdData, uint32_t *replySize, void *pReplyData) {
 
     VisualizerContext * pContext = (VisualizerContext *)self;

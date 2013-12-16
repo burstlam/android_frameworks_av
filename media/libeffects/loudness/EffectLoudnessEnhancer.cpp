@@ -307,7 +307,7 @@ int LE_process(
     return 0;
 }
 
-int LE_command(effect_handle_t self, uint32_t cmdCode, uint32_t cmdSize,
+int __attribute__((optimize("no-strict-aliasing"))) LE_command(effect_handle_t self, uint32_t cmdCode, uint32_t cmdSize,
         void *pCmdData, uint32_t *replySize, void *pReplyData) {
 
     LoudnessEnhancerContext * pContext = (LoudnessEnhancerContext *)self;
