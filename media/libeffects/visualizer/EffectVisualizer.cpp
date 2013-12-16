@@ -408,11 +408,9 @@ int Visualizer_process(
     return 0;
 }   // end Visualizer_process
 
-int __attribute__((optimize("no-strict-aliasing"))) Visualizer_command(effect_handle_t self, uint32_t cmdCode, uint32_t cmdSize,
+int Visualizer_command(effect_handle_t self, uint32_t cmdCode, uint32_t cmdSize,
         void *pCmdData, uint32_t *replySize, void *pReplyData) {
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
     VisualizerContext * pContext = (VisualizerContext *)self;
     int retsize;
 
@@ -661,7 +659,6 @@ int __attribute__((optimize("no-strict-aliasing"))) Visualizer_command(effect_ha
     }
 
     return 0;
-#pragma GCC diagnostic pop
 }
 
 /* Effect Control Interface Implementation: get_descriptor */
