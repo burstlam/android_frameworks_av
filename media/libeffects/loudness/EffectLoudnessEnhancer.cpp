@@ -307,11 +307,9 @@ int LE_process(
     return 0;
 }
 
-int __attribute__((optimize("no-strict-aliasing"))) LE_command(effect_handle_t self, uint32_t cmdCode, uint32_t cmdSize,
+int LE_command(effect_handle_t self, uint32_t cmdCode, uint32_t cmdSize,
         void *pCmdData, uint32_t *replySize, void *pReplyData) {
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
     LoudnessEnhancerContext * pContext = (LoudnessEnhancerContext *)self;
     int retsize;
 
@@ -426,7 +424,6 @@ int __attribute__((optimize("no-strict-aliasing"))) LE_command(effect_handle_t s
     }
 
     return 0;
-#pragma GCC diagnostic pop
 }
 
 /* Effect Control Interface Implementation: get_descriptor */
