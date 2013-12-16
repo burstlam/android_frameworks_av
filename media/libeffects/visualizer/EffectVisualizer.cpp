@@ -527,7 +527,7 @@ int __attribute__((optimize("no-strict-aliasing"))) Visualizer_command(effect_ha
             *(int32_t *)pReplyData = -EINVAL;
             break;
         }
-        switch (data[0]) {
+        switch (data32[0]) {
         case VISUALIZER_PARAM_CAPTURE_SIZE:
             pContext->mCaptureSize = data[1];
             ALOGV("set mCaptureSize = %d", pContext->mCaptureSize);
