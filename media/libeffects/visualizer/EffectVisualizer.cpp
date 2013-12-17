@@ -408,7 +408,7 @@ int Visualizer_process(
     return 0;
 }   // end Visualizer_process
 
-int __attribute__((optimize("no-strict-aliasing"))) Visualizer_command(effect_handle_t self, uint32_t cmdCode, uint32_t cmdSize,
+int Visualizer_command(effect_handle_t self, uint32_t cmdCode, uint32_t cmdSize,
         void *pCmdData, uint32_t *replySize, void *pReplyData) {
 
     VisualizerContext * pContext = (VisualizerContext *)self;
@@ -502,7 +502,7 @@ int __attribute__((optimize("no-strict-aliasing"))) Visualizer_command(effect_ha
             break;
         case VISUALIZER_PARAM_MEASUREMENT_MODE:
             ALOGV("get mMeasurementMode = %d", pContext->mMeasurementMode);
-            *((uint32_t *)p->data + 1) = pContext->mMeasurementMode;
+            data[1] = pContext->mMeasurementMode;
             p->vsize = sizeof(uint32_t);
             *replySize += sizeof(uint32_t);
             break;
@@ -541,7 +541,7 @@ int __attribute__((optimize("no-strict-aliasing"))) Visualizer_command(effect_ha
             ALOGV("set mLatency = %d", pContext->mLatency);
             break;
         case VISUALIZER_PARAM_MEASUREMENT_MODE:
-            pContext->mMeasurementMode = *((uint32_t *)p->data + 1);
+            pContext->mMeasurementMode = data[1];
             ALOGV("set mMeasurementMode = %d", pContext->mMeasurementMode);
             break;
         default:
