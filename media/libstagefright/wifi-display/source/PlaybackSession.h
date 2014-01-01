@@ -164,6 +164,10 @@ private:
     void onSinkFeedback(const sp<AMessage> &msg);
 
     DISALLOW_EVIL_CONSTRUCTORS(PlaybackSession);
+
+    bool mFullHD;
+    bool mChangeFPS;
+    size_t mFramerate;
 };
 
 }  // namespace android

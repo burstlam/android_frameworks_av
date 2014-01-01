@@ -1909,11 +1909,6 @@ status_t ACodec::setupVideoEncoder(const char *mime, const sp<AMessage> &msg) {
             err = setupAVCEncoderParameters(msg);
             break;
 
-        case OMX_VIDEO_CodingVP8:
-        case OMX_VIDEO_CodingVP9:
-            err = setupVPXEncoderParameters(msg);
-            break;
-
         default:
             break;
     }
@@ -2162,7 +2157,8 @@ status_t ACodec::setupAVCEncoderParameters(const sp<AMessage> &msg) {
         if (err != OK) {
             ALOGE("Setting intra macroblock refresh mode (%d) failed: 0x%x",
                     err, intraRefreshMode);
-            return err;
+            //return err;
+            ALOGE("setupAVCEncoderParameters() SKIP!! intra-refresh-mode");
         }
     }
 
@@ -2241,17 +2237,6 @@ status_t ACodec::setupAVCEncoderParameters(const sp<AMessage> &msg) {
     if (err != OK) {
         return err;
     }
-
-    return configureBitrate(bitrate, bitrateMode);
-}
-
-status_t ACodec::setupVPXEncoderParameters(const sp<AMessage> &msg) {
-    int32_t bitrate;
-    if (!msg->findInt32("bitrate", &bitrate)) {
-        return INVALID_OPERATION;
-    }
-
-    OMX_VIDEO_CONTROLRATETYPE bitrateMode = getBitrateMode(msg);
 
     return configureBitrate(bitrate, bitrateMode);
 }
@@ -3088,16 +3073,11 @@ void ACodec::BaseState::onInputBufferFilled(const sp<AMessage> &msg) {
         /* these are unfilled buffers returned by client */
         CHECK(msg->findInt32("err", &err));
 
-        if (err == OK) {
-            /* buffers with no errors are returned on MediaCodec.flush */
-            mode = KEEP_BUFFERS;
-        } else {
-            ALOGV("[%s] saw error %d instead of an input buffer",
-                 mCodec->mComponentName.c_str(), err);
-            eos = true;
-        }
+        ALOGV("[%s] saw error %d instead of an input buffer",
+             mCodec->mComponentName.c_str(), err);
 
         buffer.clear();
+        mode = KEEP_BUFFERS;
     }
 
     int32_t tmp;
