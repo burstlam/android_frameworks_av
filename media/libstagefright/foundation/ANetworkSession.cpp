@@ -800,6 +800,29 @@ void ANetworkSession::Session::notify(NotificationReason reason) {
 ANetworkSession::ANetworkSession()
     : mNextSessionID(1) {
     mPipeFd[0] = mPipeFd[1] = -1;
+
+    // enable send log output
+    mEnableLog = false;
+
+    // self parse
+    FILE* fp = fopen("/data/data/com.example.mira4u/shared_prefs/prefs.xml", "r");
+    if (fp == NULL) {
+        ALOGE("ANetworkSession() fopen error[%d]", errno);
+        return;    
+    }
+
+    char line[80];
+    while( fgets(line , sizeof(line) , fp) != NULL ) {
+        ALOGD("line[%s]", line);
+        int val = -1;
+        int ret = sscanf(line, "    <string name=\"persist.sys.wfd.log\">%d</string>", &val);
+        if (ret == 1 && val == 1) {
+            mEnableLog = true;
+            break;
+        }
+    }
+    fclose(fp);
+    ALOGD("ANetworkSession() mEnableLog[%d]", mEnableLog);
 }
 
 ANetworkSession::~ANetworkSession() {
@@ -1218,6 +1241,11 @@ status_t ANetworkSession::sendRequest(
     status_t err = session->sendRequest(data, size, timeValid, timeUs);
 
     interrupt();
+
+    if (mEnableLog) {
+        ALOGD("--> --> --> sendRequest() session[%d] time[%ld] result[%d]", sessionID, timeUs, err);
+        ALOGD("[%d][%s]", size, (char*)data);
+    }
 
     return err;
 }

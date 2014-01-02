@@ -149,6 +149,9 @@ private:
     sp<ABuffer> prependCSD(const sp<ABuffer> &accessUnit) const;
 
     DISALLOW_EVIL_CONSTRUCTORS(Converter);
+
+    bool mChangeBitRate;
+    int32_t mBitRate;
 };
 
 }  // namespace android
