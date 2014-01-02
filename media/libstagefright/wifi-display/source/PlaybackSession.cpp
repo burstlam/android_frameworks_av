@@ -366,41 +366,6 @@ WifiDisplaySource::PlaybackSession::PlaybackSession(
     if (path != NULL) {
         mMediaPath.setTo(path);
     }
-
-
-    // Source settings
-    mFullHD = false;
-    mChangeFPS = false;
-    mFramerate = 30;
-
-    // self parse
-    FILE* fp = fopen("/data/data/com.example.mira4u/shared_prefs/prefs.xml", "r");
-    if (fp == NULL) {
-        ALOGE("PlaybackSession() fopen error[%d]", errno);
-        return;
-    }
-
-    char line[80];
-    while( fgets(line , sizeof(line) , fp) != NULL ) {
-        ALOGD("line[%s]", line);
-        int val = -1;
-        int ret = sscanf(line, "    <string name=\"persist.sys.wfd.fullhd\">%d</string>", &val);
-        if (ret == 1 && val == 1) {
-            mFullHD = true;
-            }
-        val = -1;
-        ret = sscanf(line, "    <string name=\"persist.sys.wfd.fpschange\">%d</string>", &val);
-        if (ret == 1 && val == 1) {
-            mChangeFPS = true;
-            }
-        size_t fr = 0;
-        ret = sscanf(line, "    <string name=\"persist.sys.wfd.framerate\">%d</string>", &fr);
-        if (ret == 1 && fr > 0) {
-            mFramerate = fr;
-            }
-        }
-    fclose(fp);
-    ALOGD("PlaybackSession() mFullHD[%d] mChangeFPS[%d] mFramerate[%d]", mFullHD, mChangeFPS, mFramerate);
 }
 
 status_t WifiDisplaySource::PlaybackSession::init(
@@ -1068,24 +1033,12 @@ status_t WifiDisplaySource::PlaybackSession::addVideoSource(
                 &levelIdc,
                 &constraintSet));
 
-    ALOGI("addVideoSource() default  params [%d, %d](%d)Hz", width, height, framesPerSecond);
-    if (mFullHD) {
-        width = 1920;
-        height = 1080;
-    }
-    size_t fps = framesPerSecond;
-    if (mChangeFPS) {
-        fps = mFramerate != 0 ?  mFramerate : fps;
-    }
-    ALOGI("addVideoSource() changed? params [%d, %d](%d)Hz", width, height, fps);
-
     sp<SurfaceMediaSource> source = new SurfaceMediaSource(width, height);
 
     source->setUseAbsoluteTimestamps();
 
-    //sp<RepeaterSource> videoSource =
-    //    new RepeaterSource(source, framesPerSecond);
-    sp<RepeaterSource> videoSource = new RepeaterSource(source, fps);
+    sp<RepeaterSource> videoSource =
+        new RepeaterSource(source, framesPerSecond);
 
     size_t numInputBuffers;
     status_t err = addSource(

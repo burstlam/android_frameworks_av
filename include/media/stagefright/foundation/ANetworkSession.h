@@ -128,8 +128,6 @@ private:
     static status_t MakeSocketNonBlocking(int s);
 
     DISALLOW_EVIL_CONSTRUCTORS(ANetworkSession);
-
-    bool mEnableLog;
 };
 
 }  // namespace android

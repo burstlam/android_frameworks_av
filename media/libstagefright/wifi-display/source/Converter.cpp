@@ -72,36 +72,6 @@ Converter::Converter(
     } else if (!strcasecmp(MEDIA_MIMETYPE_AUDIO_RAW, mime.c_str())) {
         mIsPCMAudio = true;
     }
-
-
-    //if (mIsVideo) {
-        mChangeBitRate = false;
-        mBitRate = 0;
-
-        // self parse
-        FILE* fp = fopen("/data/data/com.example.mira4u/shared_prefs/prefs.xml", "r");
-        if (fp == NULL) {
-            ALOGE("Converter() fopen error[%d]", errno);
-            return;
-        }
-
-        char line[80];
-        while( fgets(line , sizeof(line) , fp) != NULL ) {
-            ALOGD("line[%s]", line);
-            int val = -1;
-            int ret = sscanf(line, "    <string name=\"persist.sys.wfd.brchange\">%d</string>", &val);
-            if (ret == 1 && val == 1) {
-                mChangeBitRate = true;
-            }
-            int32_t br = 0;
-            ret = sscanf(line, "    <string name=\"persist.sys.wfd.bitrate\">%d</string>", &br);
-            if (ret == 1 && br > 0) {
-                mBitRate = br;
-            }
-        }
-        fclose(fp);
-        ALOGD("Converter() mChangeBitRate[%d] mBitRate[%d]", mChangeBitRate, mBitRate);
-    //}
 }
 
 static void ReleaseMediaBufferReference(const sp<ABuffer> &accessUnit) {
@@ -214,12 +184,6 @@ status_t Converter::initEncoder() {
 
     int32_t audioBitrate = GetInt32Property("media.wfd.audio-bitrate", 128000);
     int32_t videoBitrate = GetInt32Property("media.wfd.video-bitrate", 5000000);
-
-    if (mChangeBitRate && mBitRate > 0) {
-        videoBitrate = mBitRate;
-        ALOGI("initEncoder() Force Change video bitrate of %d bps", videoBitrate);
-    }
-
     mPrevVideoBitrate = videoBitrate;
 
     ALOGI("using audio bitrate of %d bps, video bitrate of %d bps",
