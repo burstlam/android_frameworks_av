@@ -137,13 +137,17 @@ status_t Visualizer::setCaptureSize(uint32_t size)
         return INVALID_OPERATION;
     }
 
-    uint32_t buf32[sizeof(effect_param_t) / sizeof(uint32_t) + 2];
-    effect_param_t *p = (effect_param_t *)buf32;
+    union {
+        uint32_t buf32[sizeof(effect_param_t) / sizeof(uint32_t) + 2];
+        effect_param_t bufp;
+    };
+    effect_param_t *p = &bufp;
 
     p->psize = sizeof(uint32_t);
     p->vsize = sizeof(uint32_t);
-    *(int32_t *)p->data = VISUALIZER_PARAM_CAPTURE_SIZE;
-    *((int32_t *)p->data + 1)= size;
+    int32_t const vpcs = VISUALIZER_PARAM_CAPTURE_SIZE;
+    memcpy(&(p->data[0]), &vpcs, sizeof(vpcs));
+    memcpy(&(p->data[sizeof(int32_t)]), &size, sizeof(size));
     status_t status = setParameter(p);
 
     ALOGV("setCaptureSize size %d  status %d p->status %d", size, status, p->status);
@@ -166,13 +170,18 @@ status_t Visualizer::setScalingMode(uint32_t mode) {
 
     Mutex::Autolock _l(mCaptureLock);
 
-    uint32_t buf32[sizeof(effect_param_t) / sizeof(uint32_t) + 2];
-    effect_param_t *p = (effect_param_t *)buf32;
+    union {
+        uint32_t buf32[sizeof(effect_param_t) / sizeof(uint32_t) + 2];
+        effect_param_t bufp;
+    };
+    effect_param_t *p = &bufp;
 
     p->psize = sizeof(uint32_t);
     p->vsize = sizeof(uint32_t);
-    *(int32_t *)p->data = VISUALIZER_PARAM_SCALING_MODE;
-    *((int32_t *)p->data + 1)= mode;
+
+    int32_t const vpsm = VISUALIZER_PARAM_SCALING_MODE;
+    memcpy(&(p->data[0]), &vpsm, sizeof(vpsm));
+    memcpy(&(p->data[sizeof(int32_t)]), &mode, sizeof(mode));
     status_t status = setParameter(p);
 
     ALOGV("setScalingMode mode %d  status %d p->status %d", mode, status, p->status);
@@ -196,13 +205,19 @@ status_t Visualizer::setMeasurementMode(uint32_t mode) {
 
     Mutex::Autolock _l(mCaptureLock);
 
-    uint32_t buf32[sizeof(effect_param_t) / sizeof(uint32_t) + 2];
-    effect_param_t *p = (effect_param_t *)buf32;
+    union {
+        uint32_t buf32[sizeof(effect_param_t) / sizeof(uint32_t) + 2];
+        effect_param_t bufp;
+    };
+    effect_param_t *p = &bufp;
 
     p->psize = sizeof(uint32_t);
     p->vsize = sizeof(uint32_t);
-    *(int32_t *)p->data = VISUALIZER_PARAM_MEASUREMENT_MODE;
-    *((int32_t *)p->data + 1)= mode;
+    int32_t const vpmm = VISUALIZER_PARAM_MEASUREMENT_MODE;
+    memcpy(&(p->data[0]), &vpmm, sizeof(vpmm));
+    memcpy(&(p->data[sizeof(int32_t)]), &mode, sizeof(mode));
+    //*(int32_t *)p->data = VISUALIZER_PARAM_MEASUREMENT_MODE;
+    //*((int32_t *)p->data + 1)= mode;
     status_t status = setParameter(p);
 
     ALOGV("setMeasurementMode mode %d  status %d p->status %d", mode, status, p->status);
@@ -366,12 +381,16 @@ void Visualizer::periodicCapture()
 
 uint32_t Visualizer::initCaptureSize()
 {
-    uint32_t buf32[sizeof(effect_param_t) / sizeof(uint32_t) + 2];
-    effect_param_t *p = (effect_param_t *)buf32;
+    union {
+        uint32_t buf32[sizeof(effect_param_t) / sizeof(uint32_t) + 2];
+        effect_param_t bufp;
+    };
+    effect_param_t *p = &bufp;
 
     p->psize = sizeof(uint32_t);
     p->vsize = sizeof(uint32_t);
-    *(int32_t *)p->data = VISUALIZER_PARAM_CAPTURE_SIZE;
+    int32_t const vpcs = VISUALIZER_PARAM_CAPTURE_SIZE;
+    memcpy(&(p->data[0]), &vpcs, sizeof(vpcs));
     status_t status = getParameter(p);
 
     if (status == NO_ERROR) {
@@ -380,7 +399,7 @@ uint32_t Visualizer::initCaptureSize()
 
     uint32_t size = 0;
     if (status == NO_ERROR) {
-        size = *((int32_t *)p->data + 1);
+        memcpy(&size, &(p->data[sizeof(int32_t)]), sizeof(int32_t));
     }
     mCaptureSize = size;
 

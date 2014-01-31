@@ -23,5 +23,4 @@ LOCAL_C_INCLUDES := \
 	bionic/libstdc++/include \
 	external/stlport/stlport
 
-
 include $(BUILD_SHARED_LIBRARY)

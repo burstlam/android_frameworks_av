@@ -61,13 +61,13 @@ const struct effect_interface_s gDownmixInterface = {
 // This is the only symbol that needs to be exported
 __attribute__ ((visibility ("default")))
 audio_effect_library_t AUDIO_EFFECT_LIBRARY_INFO_SYM = {
-    tag : AUDIO_EFFECT_LIBRARY_TAG,
-    version : EFFECT_LIBRARY_API_VERSION,
-    name : "Downmix Library",
-    implementor : "The Android Open Source Project",
-    create_effect : DownmixLib_Create,
-    release_effect : DownmixLib_Release,
-    get_descriptor : DownmixLib_GetDescriptor,
+    .tag = AUDIO_EFFECT_LIBRARY_TAG,
+    .version = EFFECT_LIBRARY_API_VERSION,
+    .name = "Downmix Library",
+    .implementor = "The Android Open Source Project",
+    .create_effect = DownmixLib_Create,
+    .release_effect = DownmixLib_Release,
+    .get_descriptor = DownmixLib_GetDescriptor,
 };
 
 
@@ -415,7 +415,8 @@ static int Downmix_Command(effect_handle_t self, uint32_t cmdCode, uint32_t cmdS
         memcpy(pReplyData, pCmdData, sizeof(effect_param_t) + sizeof(int32_t));
         ALOGV("Downmix_Command EFFECT_CMD_GET_PARAM param %d, replySize %d",
                 *(int32_t *)rep->data, rep->vsize);
-        rep->status = Downmix_getParameter(pDownmixer, *(int32_t *)rep->data, &rep->vsize,
+        int32_t rep_data; memcpy(&rep_data, rep->data, sizeof(int32_t));
+        rep->status = Downmix_getParameter(pDownmixer, rep_data /* *(int32_t *)rep->data */, &rep->vsize,
                 rep->data + sizeof(int32_t));
         *replySize = sizeof(effect_param_t) + sizeof(int32_t) + rep->vsize;
         break;
@@ -428,7 +429,8 @@ static int Downmix_Command(effect_handle_t self, uint32_t cmdCode, uint32_t cmdS
             return -EINVAL;
         }
         effect_param_t *cmd = (effect_param_t *) pCmdData;
-        *(int *)pReplyData = Downmix_setParameter(pDownmixer, *(int32_t *)cmd->data,
+        int32_t cmd_data; memcpy(&cmd_data, cmd->data, sizeof(int32_t));
+        *(int *)pReplyData = Downmix_setParameter(pDownmixer, cmd_data /* *(int32_t *)cmd->data*/,
                 cmd->vsize, cmd->data + sizeof(int32_t));
         break;
 
@@ -629,7 +631,7 @@ int Downmix_Configure(downmix_module_t *pDwmModule, effect_config_t *pConfig, bo
         return -EINVAL;
     }
 
-    memcpy(&pDwmModule->config, pConfig, sizeof(effect_config_t));
+    memmove(&pDwmModule->config, pConfig, sizeof(effect_config_t));
 
     if (init) {
         pDownmixer->type = DOWNMIX_TYPE_FOLD;
