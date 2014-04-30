@@ -1,4 +1,7 @@
 /*
+ * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ * Not a Contribution.
+ *
  * Copyright (C) 2010 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +35,9 @@
 #include <media/stagefright/MetaData.h>
 #include <media/stagefright/Utils.h>
 #include <utils/String8.h>
+#include <media/stagefright/foundation/ABitReader.h>
+
+#include <cutils/properties.h>
 
 namespace android {
 
@@ -657,6 +663,27 @@ MatroskaExtractor::MatroskaExtractor(const sp<DataSource> &source)
     ret = mSegment->ParseHeaders();
     CHECK_EQ(ret, 0);
 
+    const mkvparser::SegmentInfo *info = mSegment->GetInfo();
+
+    const char* muxingAppInfo = info->GetMuxingAppAsUTF8();
+    const char* writingApp    = info->GetWritingAppAsUTF8();
+
+    char property_value[PROPERTY_VALUE_MAX] = {0};
+    int parser_flags = 0;
+    property_get("mm.enable.qcom_parser", property_value, "0");
+    parser_flags = atoi(property_value);
+
+    //if divx parsing is disabled and clip has divx hint, bailout
+    //flag 0x00100000 is for DivX and 0x00200000 is for DivxHD
+    if(!(0x00300000 & parser_flags) &&
+       ((!strncasecmp(muxingAppInfo, "libDivX", 7)) ||
+       (!strncasecmp(writingApp, "DivX", 4)))) {
+        ALOGW("format found is not supported -- Bailing out --");
+        delete mSegment;
+        mSegment = NULL;
+        return;
+    }
+
     long len;
     ret = mSegment->LoadCluster(pos, len);
     CHECK_EQ(ret, 0);
@@ -736,6 +763,20 @@ static void addESDSFromCodecPrivate(
 
     // Make sure all sizes can be coded in a single byte.
     CHECK(privSize + 22 - 2 < 128);
+
+    if(isAudio) {
+        ABitReader br((const uint8_t *)priv, privSize);
+        uint32_t objectType = br.getBits(5);
+
+        if (objectType == 31) {  // AAC-ELD => additional 6 bits
+            objectType = 32 + br.getBits(6);
+        }
+
+        if(objectType == 1) { //AAC Main profile
+            ALOGV("Found AAC mainprofile in Matroska Extractor");
+        }
+        meta->setInt32(kKeyAACAOT, objectType);
+    }
     size_t esdsSize = sizeof(kStaticESDS) + privSize + 1;
     uint8_t *esds = new uint8_t[esdsSize];
     memcpy(esds, kStaticESDS, sizeof(kStaticESDS));
